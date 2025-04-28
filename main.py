@@ -1,19 +1,14 @@
 import sys
 import os
-import config_file
-import csv
 
-from existence_checker import programName_existence
-from existence_checker import programCode_existence
-from existence_checker import collegeName_existence
-from existence_checker import collegeCode_existence
-from existence_checker import idNumber_existence
+import create_database
+from existence_checker_db import college_code_checker, college_name_checker, program_code_checker, program_name_checker, id_number_checker
 
 from PyQt6.QtWidgets import QMainWindow, QApplication, QDialog, QTableWidget , QTableWidgetItem, QPushButton, QWidget, QHBoxLayout, QMessageBox
 from PyQt6 import QtWidgets, QtCore
-from AddDialog_folder.AddStudent_Dialog import Ui_AddStudent_Dialog
-from AddDialog_folder.AddProgram_Dialog import Ui_AddProgram_Dialog
-from AddDialog_folder.AddCollege_Dialog import Ui_AddCollege_Dialog
+from AddDialog_folder.AddStudent_Dialog_ui import Ui_AddStudent_Dialog
+from AddDialog_folder.AddProgram_Dialog_ui import Ui_AddProgram_Dialog
+from AddDialog_folder.AddCollege_Dialog_ui import Ui_AddCollege_Dialog
 
 from EditDialog_folder.EditStudent_Dialog import Ui_EditStudent_Dialog
 from EditDialog_folder.EditProgram_Dialog import Ui_EditProgram_Dialog
@@ -23,84 +18,75 @@ from deleteItemConfirmation import Ui_DeleteConfirmation
 
 from final2 import Ui_MainWindow
 
-#Function to create csv file
-def create_csv_file(filename, fieldnames):
-    if not os.path.isfile(filename):
-        with open(filename, "w", newline="") as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-            csv_writer.writeheader()
-            print(f" Created: {filename}")
+import mysql.connector
 
-#using function to create the csv files
-create_csv_file(config_file.student_filename, config_file.student_fieldnames)
-create_csv_file(config_file.program_filename, config_file.program_fieldnames)
-create_csv_file(config_file.college_filename, config_file.college_fieldnames)
+# Connect to the database
+mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="root",
+    database="your_database_name"
+)
 
+#Creates the database if its not created yet
+create_database.create_database()
 
-#DONE: DONE
-#Opens the Add Student Dialog when button is clicked
-class AddStudentDialog(QDialog):
+#Opens the Add College Dialog when button is clicked
+class AddCollegeDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.ui = Ui_AddStudent_Dialog()
+        self.ui = Ui_AddCollege_Dialog()
         self.ui.setupUi(self)
 
-        #When Save and Cancel button is clicked, call respective funtions
-        self.ui.Save_button.clicked.connect(self.save_student)
+        #When Save and Cancel button is clicked, call respective functions
+        self.ui.Save_button.clicked.connect(self.save_college)
         self.ui.Cancel_button.clicked.connect(self.cancel_action)
 
     #Funtion to cancel/close the dialog
     def cancel_action(self):
-        print("Student Dialog Cancelled") #Optional
+        print("College Dialog Cancelled")
         self.reject()
 
-    #Function to save student to csv
-    def save_student(self):
-        id_number = self.ui.ID_Number_input.text()
-        first_name = self.ui.First_Name_input.text()
-        last_name = self.ui.Last_Name_input.text()
-        year_level = self.ui.Year_Level_comboBox.currentText()
-        gender = self.ui.Gender_input.text()
-        program_code = self.ui.Program_Code_input.text()
+    #Function to save college to csv
+    def save_college(self):
+        college_code = self.ui.CollegeCode_input.text()
+        college_name = self.ui.CollegeName_input.text()
 
-        if not programCode_existence(config_file.program_filename, program_code):
-            QMessageBox.warning(self, "Error", "Program Code doesn't exists! Enter a valid program code")
+        if college_code_checker(self.cursor, college_code):
+            QMessageBox.warning(self, "Error", "College code already exists!")
             return
-
-        if idNumber_existence(config_file.student_filename, id_number):
-            QMessageBox.warning(self, "Error", "ID Number already exists")
+        
+        if college_name_checker(self.cursor, college_name):
+            QMessageBox.warning(self, "Error", "College name already exists!")
             return
+        
+        if not college_code:
+            QMessageBox.warning(self,"Error","Field can't be empty")
 
-        if not all([id_number, first_name, last_name, year_level, gender, program_code]):
-            QMessageBox.warning(self, "Input Error", "All fields must be filled out.")
-            return
-                
-        csv_filename = config_file.student_filename 
-        file_exists = os.path.isfile(csv_filename)
+        if not college_name:
+            QMessageBox.warning(self,"Error","Field can't be empty")
 
-        with open(csv_filename, "a", newline="") as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=config_file.student_fieldnames)
+        else:
+            insert_college_sql = "INSERT INTO college(college_code, college_name) VALUES (%s, %s)"
+            values = (college_code, college_name)
 
-            if not file_exists:
-                csv_writer.writeheader()
+            try:
+                self.cursor.execute(insert_college_code_sql, values)
+                self.db.commit()
+                QMessageBox.information(self, "Success", "College added successfully!")
+                self.accept()
+            except mysql.connector.Error as err:
+                print(f"Error: {err}")
+                self.db.rollback()  # Rollback if there's an error
+                QMessageBox.critical(self, "Error", "An error occurred while adding the college.")
 
-            csv_writer.writerow({
-                "id_number": id_number,
-                "first_name": first_name,
-                "last_name": last_name,
-                "year_level": year_level,
-                "gender": gender,
-                "program_code": program_code
-            })
-
-        print("Student Added")
-
-        #Reloads the table to show the added student
-        self.parent().load_csv_to_table(self.parent().student_table, csv_filename, "STUDENTS")
+        #TODO: LOAD THE DATA IN THE GUI, SORT IT IF IT HAS A SORT, ACCEPT IT
+        
+        #Reloads the table to show the added college
+        self.parent().load_csv_to_table(self.parent().college_table, csv_filename, "COLLEGES")
         self.parent().sort_table()
         self.accept()
 
-#DONE: DONE
 #Opens the Add Program Dialog when button is clicked
 class AddProgramDialog(QDialog):
     def __init__(self, parent=None):
@@ -122,17 +108,17 @@ class AddProgramDialog(QDialog):
         program_code = self.ui.ProgramCode_input.text()
         program_name = self.ui.ProgramName_input.text()
         college_code = self.ui.CollegeCode_input.text()
-
-        if programName_existence(config_file.program_filename, program_name):
-            QMessageBox.warning(self, "Error", "Program Name already exists!")
-            return
         
-        if programCode_existence(config_file.program_filename, program_code):
+        if program_code_checker(self.cursor, program_code):
             QMessageBox.warning(self, "Error", "Program Code already exists!")
             return
+        
+        if program_name_checker(self.cursor, program_name):
+            QMessageBox.warning(self, "Error", "Program Name already exists!")
+            return
 
-        if not collegeCode_existence(config_file.college_filename, college_code):
-            QMessageBox.warning(self, "Error", "College doesn't exist! Please enter a valid college code.")
+        if not college_code_checker(self.cursor, college_code):
+            QMessageBox.warning(self, "Error", "College code doesn't exists")
             return
 
         if not program_code:
@@ -142,86 +128,82 @@ class AddProgramDialog(QDialog):
         if not college_code:
             QMessageBox.warning(self,"Error","Field can't be empty") 
         
-        csv_filename = config_file.program_filename
-        file_exists = os.path.isfile(csv_filename)
+        else:
+            insert_program_sql = "INSERT INTO program(program_code, program_name, college_code) VALUES (%s, %s, %s)"
+            values = (program_code, program_name, college_code)
 
-        with open(csv_filename, "a", newline="") as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=config_file.program_fieldnames)
+            try:
+                self.cursor.execute(insert_program_sql, values)
+                self.db.commit()
+                QMessageBox.information(self, "Success", "Program added successfully!")
+                self.accept()
+            except mysql.connector.Error as err:
+                print(f"Error: {err}")
+                self.db.rollback()  # Rollback if there's an error
+                QMessageBox.critical(self, "Error", "An error occurred while adding the program.")
 
-            if not file_exists:
-                csv_writer.writeheader()
-
-            csv_writer.writerow({
-                "program_code": program_code, 
-                "program_name" : program_name, 
-                "college_code" : college_code
-                })
-
-        print("Program Added")
-
-        #Reloads the table to show the added program
+        #TODO: LOAD IT TO THE GUI, SORT IT IF NAKA SORT, THEN CLOSE
         self.parent().load_csv_to_table(self.parent().program_table, csv_filename, "PROGRAMS")
         self.parent().sort_table()
         self.accept()
 
-#DONE:DONE
-#Opens the Add College Dialog when button is clicked
-class AddCollegeDialog(QDialog):
+#Opens the Add Student Dialog when button is clicked
+class AddStudentDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.ui = Ui_AddCollege_Dialog()
+        self.ui = Ui_AddStudent_Dialog()
         self.ui.setupUi(self)
 
         #When Save and Cancel button is clicked, call respective funtions
-        self.ui.Save_button.clicked.connect(self.save_college)
+        self.ui.Save_button.clicked.connect(self.save_student)
         self.ui.Cancel_button.clicked.connect(self.cancel_action)
 
     #Funtion to cancel/close the dialog
     def cancel_action(self):
-        print("College Dialog Cancelled") #Optional
+        print("Student Dialog Cancelled") #Optional
         self.reject()
 
-    #Function to save college to csv
-    def save_college(self):
-        college_code = self.ui.CollegeCode_input.text()
-        college_name = self.ui.CollegeName_input.text()
+    #Function to save student to csv
+    def save_student(self):
+        id_number = self.ui.ID_Number_input.text()
+        first_name = self.ui.First_Name_input.text()
+        last_name = self.ui.Last_Name_input.text()
+        gender = self.ui.Gender_input.text()
+        year_level = self.ui.Year_Level_comboBox.currentText()
+        program_code = self.ui.Program_Code_input.text()
 
-        if collegeCode_existence(config_file.college_filename, college_code):
-            QMessageBox.warning(self, "Error", "College code already exists, change it")
+        if not program_code_checker(self.cursor, program_code):
+            QMessageBox.warning(self, "Error", "Program Code doesn't exists!")
             return
-        
-        if collegeName_existence(config_file.college_filename, college_name):
-            QMessageBox.warning(self, "Error", "College name already exists, change it")
+
+        if id_number_checker(self.cursor, id_number):
+            QMessageBox.warning(self, "Error", "ID Number already exists")
             return
 
-        if not college_code:
-            QMessageBox.warning(self,"Error","Field can't be empty")
-        if not college_name:
-            QMessageBox.warning(self,"Error","Field can't be empty")
+        if not all([id_number, first_name, last_name, year_level, gender, program_code]):
+            QMessageBox.warning(self, "Input Error", "All fields must be filled out.")
+            return
+                
+        else:
+            insert_student_sql = "INSERT INTO student(id_number, first_name, last_name, gender, year_level, program_code) VALUES (%s, %s, %s, %s, %s, %s)"
+            values = (id_number, first_name, last_name, gender, year_level, program_code)
 
-        csv_filename = config_file.college_filename
+            try:
+                self.cursor.execute(insert_student_sql, values)
+                self.db.commit()
+                QMessageBox.information(self, "Success", "Student added successfully!")
+                self.accept()
+            except mysql.connector.Error as err:
+                print(f"Error: {err}")
+                self.db.rollback()  # Rollback if there's an error
+                QMessageBox.critical(self, "Error", "An error occurred while adding the student.")
 
-        file_exists = os.path.isfile(csv_filename)
 
-        with open(csv_filename, "a", newline="") as csv_file:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=config_file.college_fieldnames)
-
-            if not file_exists:
-                csv_writer.writeheader()
-
-            csv_writer.writerow({
-                "college_code" : college_code, 
-                "college_name" : college_name
-                })
-
-        print("College Added")
-
-        #Reloads the table to show the added college
-        self.parent().load_csv_to_table(self.parent().college_table, csv_filename, "COLLEGES")
+        #TODO: LOAD THIS DATA TO THE CSV, SORT IF IF NAAY SORT
+        self.parent().load_csv_to_table(self.parent().student_table, csv_filename, "STUDENTS")
         self.parent().sort_table()
         self.accept()
 
-#TODO:
 #Opens a Edit Dialog when edit button is clicked
 class EditStudentDialog(QDialog):
     def __init__(self, parent, row_data, row_index):
@@ -289,7 +271,6 @@ class EditStudentDialog(QDialog):
 
         self.accept()
 
-#DONE:
 #Opens a Edit Dialog when edit button is clicked
 class EditCollegeDialog(QDialog):
     def __init__(self, parent, row_data, row_index):
@@ -412,7 +393,6 @@ class EditCollegeDialog(QDialog):
 
         print(f"✅ Successfully updated {old_code} → {new_code} in program.csv")
 
-#DONE:
 #Opens a Edit Dialog when edit button is clicked
 class EditProgramDialog(QDialog):
     def __init__(self, parent, row_data, row_index):

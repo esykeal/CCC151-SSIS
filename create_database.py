@@ -1,22 +1,29 @@
 import mysql.connector
+import config_file
 
-mydb =mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="root"
-)
+def create_database():
 
-mycursor = mydb.cursor()
+    mydb =mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="root"
+    )
 
-database_name = "ssis_db"
+    mycursor = mydb.cursor()
 
-mycursor.execute("SHOW DATABASES")
+    database_name = config_file.database_name
 
-for db in mycursor:
-    if db[0] == database_name:
-        print("Database already exists")
-        break
+    mycursor.execute("SHOW DATABASES")
 
-else:
-    mycursor.execute(f"CREATE DATABASE {database_name}")
-    print("Database was created")
+    for db in mycursor:
+        if db[0] == database_name:
+            print("Database already exists")
+            break
+
+    else:
+        mycursor.execute(f"CREATE DATABASE {database_name}")
+        print("Database was created")
+
+    mycursor.close()
+    mydb.close()
+
