@@ -1,5 +1,6 @@
 import sys
 import os
+import config_file
 
 import create_database
 from existence_checker_db import college_code_checker, college_name_checker, program_code_checker, program_name_checker, id_number_checker
@@ -71,7 +72,7 @@ class AddCollegeDialog(QDialog):
             values = (college_code, college_name)
 
             try:
-                self.cursor.execute(insert_college_code_sql, values)
+                self.cursor.execute(insert_college_sql, values)
                 self.db.commit()
                 QMessageBox.information(self, "Success", "College added successfully!")
                 self.accept()
@@ -83,7 +84,7 @@ class AddCollegeDialog(QDialog):
         #TODO: LOAD THE DATA IN THE GUI, SORT IT IF IT HAS A SORT, ACCEPT IT
         
         #Reloads the table to show the added college
-        self.parent().load_csv_to_table(self.parent().college_table, csv_filename, "COLLEGES")
+        self.parent().show_college_db_to_table()
         self.parent().sort_table()
         self.accept()
 
@@ -517,7 +518,6 @@ class DeleteItemConfirmation(QDialog):
         self.ui.Confirm.clicked.connect(self.accept)
         self.ui.Cancel.clicked.connect(self.reject)
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -532,7 +532,7 @@ class MainWindow(QMainWindow):
         #Function call for using search function
         self.ui.search_text.textChanged.connect(self.search_table)
 
-        #nicknames for the tan;es
+        #nicknames for the tables
         self.student_table = self.ui.tableWidget
         self.program_table = self.ui.tableWidget_2
         self.college_table = self.ui.tableWidget_3
@@ -562,6 +562,7 @@ class MainWindow(QMainWindow):
         self.ui.addprogram_button.clicked.connect(self.open_add_program_dialog)
         self.ui.addcollege_button.clicked.connect(self.open_add_college_dialog)
 
+        #TODO: revise to sql
         #MAYBE USEFUL FOR UPDATING
         #Load the CSV files to the table
         self.load_csv_to_table(self.student_table, config_file.student_filename, "STUDENTS")
@@ -584,23 +585,11 @@ class MainWindow(QMainWindow):
         dialog = AddCollegeDialog(self)
         dialog.exec()
 
-    #Function to load the csv files to the tables
-    def load_csv_to_table(self, table_widget, filename, table_type):
-        if not os.path.isfile(filename):
-            print(f" File {filename} does not exist yet.")
-            return
+    #TODO: DELETE THIS
+    def show_db_to_table(self, table_widget, table_type):
 
-        with open(filename, "r", newline="") as file:
-            csv_reader = csv.reader(file)
-            data = list(csv_reader)
-
-            if not data:
-                print(f" {filename} is empty.")
-                return
-            
             #Get headers from config_file.py
             headers = config_file.header_names.get(table_type, [])
-            fieldnames = [h[0] for h in headers] #Unused yet
             readable_headers = [h[1] for h in headers]
 
             #Sets the table headers and adds one for the Actions
@@ -634,7 +623,119 @@ class MainWindow(QMainWindow):
 
             print(f" Loaded {filename} into {table_type} table with custom headers.")
     
-    #Function to edit the row
+    #DONE: THIS IS A REVISED FUNCTION of the show_db_to_table()
+    def load_college_db_to_table(self, table_widget, table_type):
+        try:
+            self.cursor.execute("SELECT college_code, college_name FROM college")
+            rows = self.cursor.fetchall()
+        except mysql.connector.Error as err:
+            QMessageBox.warning(self, "Error", f"{err}")
+            return
+        if not rows:
+            print(f"No data found in the {table_type} table.")
+            return
+        
+        headers = config_file.header_names.get("COLLEGES", [])
+        readable_headers = [h[1] for h in headers]
+
+        table_widget.setColumnCount(len(readable_headers) + 1)  # +1 for Actions
+        table_widget.setHorizontalHeaderLabels(readable_headers + ["Actions"])
+
+        table_widget.setRowCount(len(rows))
+        for row_index, row in enumerate(rows):
+            for col_index, value in enumerate(row):
+                if col_index < table_widget.columnCount() - 1:  # Skip the last 'Actions' column
+                    table_widget.setItem(row_index, col_index, QTableWidgetItem(str(value)))
+
+            action_widget = QWidget()
+            layout = QHBoxLayout(action_widget)
+            layout.setContentsMargins(0, 0, 0, 0)
+
+            edit_button = QPushButton("Edit")
+            edit_button.clicked.connect(lambda _, ri=row_index: self.edit_row_database(table_widget, ri))
+            layout.addWidget(edit_button)
+
+            delete_button = QPushButton("Delete")
+            delete_button.clicked.connect(lambda _, ri=row_index: self.confirm_delete_row_database(table_widget, ri))
+            layout.addWidget(delete_button)
+
+            table_widget.setCellWidget(row_index, len(readable_headers), action_widget)
+
+    def load_program_db_to_table(self, table_widget, table_type):
+        try:
+            self.cursor.execute("SELECT program_code, program_name, college_code FROM program")
+            rows = self.cursor.fetchall()
+        except mysql.connector.Error as err:
+            QMessageBox.warning(self, "Error", f"{err}")
+            return
+        if not rows:
+            print(f"No data found in the {table_type} table.")
+            return
+        
+        headers = config_file.header_names.get("PROGRAMS", [])
+        readable_headers = [h[1] for h in headers]
+        
+        table_widget.setColumnCount(len(readable_headers) + 1)  # +1 for Actions
+        table_widget.setHorizontalHeaderLabels(readable_headers + ["Actions"])
+
+        table_widget.setRowCount(len(rows))
+        for row_index, row in enumerate(rows):
+            for col_index, value in enumerate(row):
+                if col_index < table_widget.columnCount() - 1:  # Skip the last 'Actions' column
+                    table_widget.setItem(row_index, col_index, QTableWidgetItem(str(value)))
+
+            action_widget = QWidget()
+            layout = QHBoxLayout(action_widget)
+            layout.setContentsMargins(0, 0, 0, 0)
+
+            edit_button = QPushButton("Edit")
+            edit_button.clicked.connect(lambda _, ri=row_index: self.edit_row_database(table_widget, ri))
+            layout.addWidget(edit_button)
+
+            delete_button = QPushButton("Delete")
+            delete_button.clicked.connect(lambda _, ri=row_index: self.confirm_delete_row_database(table_widget, ri))
+            layout.addWidget(delete_button)
+
+            table_widget.setCellWidget(row_index, len(readable_headers), action_widget)
+
+    def load_student_db_to_table(self, table_widget, table_type):
+        try:
+            self.cursor.execute("SELECT id_number, first_name, last_name, gender, year_level_ program_code FROM student")
+            rows = self.cursor.fetchall()
+        except mysql.connector.Error as err:
+            QMessageBox.warning(self, "Error", f"{err}")
+            return
+        if not rows:
+            print(f"No data found in the {table_type} table.")
+            return
+        
+        headers = config_file.header_names.get("STUDENTS", [])
+        readable_headers = [h[1] for h in headers]
+
+        table_widget.setColumnCount(len(readable_headers) + 1)  # +1 for Actions
+        table_widget.setHorizontalHeaderLabels(readable_headers + ["Actions"])
+
+        table_widget.setRowCount(len(rows))
+        for row_index, row in enumerate(rows):
+            for col_index, value in enumerate(row):
+                if col_index < table_widget.columnCount() - 1:  # Skip the last 'Actions' column
+                    table_widget.setItem(row_index, col_index, QTableWidgetItem(str(value)))
+
+            action_widget = QWidget()
+            layout = QHBoxLayout(action_widget)
+            layout.setContentsMargins(0, 0, 0, 0)
+
+            edit_button = QPushButton("Edit")
+            edit_button.clicked.connect(lambda _, ri=row_index: self.edit_row_database(table_widget, ri))
+            layout.addWidget(edit_button)
+
+            delete_button = QPushButton("Delete")
+            delete_button.clicked.connect(lambda _, ri=row_index: self.confirm_delete_row_database(table_widget, ri))
+            layout.addWidget(delete_button)
+
+            table_widget.setCellWidget(row_index, len(readable_headers), action_widget)
+
+    #TODO: revise this to sql
     def edit_row(self, table_widget, filename, row_index):
         print(f"Editing row {row_index} in {filename}")
         
@@ -667,7 +768,7 @@ class MainWindow(QMainWindow):
         if dialog.exec():  # User clicked Save
             self.load_csv_to_table(table_widget, filename, table_type)
 
-    #Function to delete the row
+    #TODO: revise this to sql
     def delete_row(self, table_widget, filename, row_index):
         print(f"Deleting row {row_index} from {filename}")
 
@@ -714,6 +815,7 @@ class MainWindow(QMainWindow):
 
         self.load_csv_to_table(table_widget, filename, table_type)
 
+    #TODO: revise this to sql
     def confirm_delete_Row(self,table_widget, filename, row_index):
         dialog = DeleteItemConfirmation()
         result = dialog.exec()
@@ -723,7 +825,7 @@ class MainWindow(QMainWindow):
         else:
             print("Cancelled")
 
-    #Function for searching
+    #TODO: revise to sql
     def search_table(self):
         search_text = self.ui.search_text.text().strip().lower()
         selected_filter = self.ui.SearchFilters.currentIndex()
@@ -757,69 +859,66 @@ class MainWindow(QMainWindow):
                 else:
                     table_widget.setRowHidden(row, True)
 
-    #Function for sorting the tables
+    #DONE: sorting function using sql
     def sort_table(self):
         current_index = self.ui.stackedWidget.currentIndex()
 
-        if current_index == 0:
-            table_widget = self.student_table
-            filename = config_file.student_filename
-            table_type = "STUDENTS"
-            sort_combo = self.ui.comboBox
-            sort_mapping = {
-                1: (1, QtCore.Qt.SortOrder.AscendingOrder),  # First Name (A-Z)
-                2: (1, QtCore.Qt.SortOrder.DescendingOrder),  # First Name (Z-A)
-                3: (2, QtCore.Qt.SortOrder.AscendingOrder),  # Last Name (A-Z)
-                4: (2, QtCore.Qt.SortOrder.DescendingOrder),  # Last Name (Z-A)
-                5: (0, QtCore.Qt.SortOrder.AscendingOrder),  # Student ID (Ascending)
-                6: (0, QtCore.Qt.SortOrder.DescendingOrder),  # Student ID (Descending)
-                7: (3, QtCore.Qt.SortOrder.AscendingOrder),  # Year Level (1-4)
-                8: (3, QtCore.Qt.SortOrder.DescendingOrder),  # Year Level (4-1)
-                9: (5, QtCore.Qt.SortOrder.AscendingOrder),  # Program Code (A-Z)
-                10: (4, QtCore.Qt.SortOrder.AscendingOrder)  # Gender
-            }
-
-        elif current_index == 1:
-            table_widget = self.program_table
-            filename = config_file.program_filename
-            table_type = "PROGRAMS"
-            sort_combo = self.ui.comboBox_2
-            sort_mapping = {
-                1: (0, QtCore.Qt.SortOrder.AscendingOrder), #Program Code (A-Z)
-                2: (0, QtCore.Qt.SortOrder.DescendingOrder), #Z-A
-                3: (1, QtCore.Qt.SortOrder.AscendingOrder),  #Program Name (A-Z)
-                4: (1, QtCore.Qt.SortOrder.DescendingOrder), #Z-A
-                5: (2, QtCore.Qt.SortOrder.AscendingOrder), #College Code (A-Z)
-                6: (2, QtCore.Qt.SortOrder.DescendingOrder) #Z-A
-            }
-        elif current_index == 2:
+        if current_index == 2:
             table_widget = self.college_table
-            filename = config_file.college_filename
             table_type = "COLLEGES"
             sort_combo = self.ui.comboBox_3
-            sort_mapping = {
-                1: (0, QtCore.Qt.SortOrder.AscendingOrder), #College Code (A-Z)
-                2: (0, QtCore.Qt.SortOrder.DescendingOrder), #Z-A
-                3: (1, QtCore.Qt.SortOrder.AscendingOrder),  #College Name (A-Z)
-                4: (1, QtCore.Qt.SortOrder.DescendingOrder), #Z-A
-            }
-        else:
-            print("⚠️ No active table found.")
-            return
+            sort_mapping_sql = {
+                    1: "ORDER BY college_code ASC", # College Code (A-Z)
+                    2: "ORDER BY college_code DESC", # College Code Z-A
+                    3: "ORDER BY college_name ASC",  #College Name (A-Z)
+                    4: "ORDER BY college_name DESC", # College Z-A
+                }
+            base_query = "SELECT college_code, college_name FROM college"
+        
+        if current_index == 1:
+            table_widget = self.program_table
+            table_type = "PROGRAMS"
+            sort_combo = self.ui.comboBox_2
+            sort_mapping_sql = {
+                1: "ORDER BY program_code ASC", #Program Code (A-Z)
+                2: "ORDER BY program_code DESC", #Program Code (Z-A)
+                3: "ORDER BY program_name ASC",  #Program Name (A-Z)
+                4: "ORDER BY program_name DESC", #Program Name (Z-A)
+                5: "ORDER BY college_code ASC", #College Code (A-Z)
+                6: "ORDER BY college_code DESC" #College code (Z-A)
+                }
+            base_query = "SELECT program_code, program_name, college_code FROM program"
+        
+        if current_index == 0:
+            table_widget = self.student_table
+            table_type = "STUDENTS"
+            sort_combo = self.ui.comboBox
+            sort_mapping_sql = {
+                1: "ORDER BY first_name ASC",  # First Name (A-Z)
+                2: "ORDER BY first_name DESC",  # First Name (Z-A)
+                3: "ORDER BY last_name ASC",  # Last Name (A-Z)
+                4: "ORDER BY last_name DESC",  # Last Name (Z-A)
+                5: "ORDER BY id_number ASC",  # Student ID (Ascending)
+                6: "order by id_number DESC",  # Student ID (Descending)
+                7: "ORDER BY year_level ASC",  # Year Level (1-4)
+                8: "ORDER BY year_level DESC",  # Year Level (4-1)
+                9: "ORDER BY program_code ASC",  # Program Code (A-Z)
+                10: "ORDER BY gender ASC" # Gender
+                }
+            base_query = "SELECT first_name, last_name, id_number, year_level, program_code, gender FROM student"
+
 
         selected_sort_index = sort_combo.currentIndex()
+        order_clause = sort_mapping_sql.get(selected_sort_index, "")
 
-        if selected_sort_index not in sort_mapping:
-            print(f"🔄 Restoring {table_type} Table to Original Order from CSV...")
-            self.load_csv_to_table(table_widget, filename, table_type)
-            return
-        
-        column_index, sort_order = sort_mapping[selected_sort_index]
+        query = f" {base_query} {order_clause}"
 
-        print(f"🔄 Sorting {table_type} Table by Column Index: {selected_sort_index}")
+        self.cursor.execute(query)
+        results = self.cursor.fetchall()
 
         table_widget.sortItems(column_index, sort_order)
 
+    #TODO: revise to sql
     def update_programs_after_college_delete(self, deleted_college_code):
         program_filename = config_file.program_filename
         updated_data = []
@@ -851,6 +950,7 @@ class MainWindow(QMainWindow):
 
         self.update_students_after_program_delete("N/A")
 
+    #TODO: revise to sql
     def update_students_after_program_delete(self, deleted_program_code):
         student_filename = config_file.student_filename
         updated_data = []
