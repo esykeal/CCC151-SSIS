@@ -605,7 +605,7 @@ class MainWindow(QMainWindow):
 
         elif current_index == 0:
             tableWidget = self.ui.student_table
-            headers = ["ID Number", "First Name", "Last Name", "Gender", "Year Level", "Program Code"]
+            headers = ["ID Number", "First Name", "Last Name", "Gender", "Year Level", "Program Code", "Actions"]
             sql = "SELECT * FROM student"
         else:
             return

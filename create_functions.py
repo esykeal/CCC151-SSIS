@@ -68,11 +68,12 @@ def create_program_table():
                 program_code VARCHAR(10),
                 program_name VARCHAR(50) NOT NULL UNIQUE,
                 college_code VARCHAR(10) NULL,
+                PRIMARY KEY (program_code),
                 FOREIGN KEY (college_code) 
                     REFERENCES college(college_code)
-                    ON DELETE SET NULL,
+                    ON DELETE SET NULL
                     ON UPDATE CASCADE
-                PRIMARY KEY (program_code)
+                
             );
         """)
         print("Program table created successfully")
@@ -95,11 +96,11 @@ def create_student_table():
                 gender VARCHAR(6) NOT NULL,
                 year_level INT NOT NULL,
                 program_code VARCHAR(10) NULL,
+                PRIMARY KEY (id_number),
                 FOREIGN KEY (program_code) 
                     REFERENCES program(program_code)
                     ON UPDATE CASCADE
-                    ON DELETE SET NULL,
-                PRIMARY KEY (id_number)
+                    ON DELETE SET NULL
                 );
         """)
         print("Student table created successfully")
