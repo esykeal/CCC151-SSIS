@@ -1,9 +1,10 @@
+database_name = "ssis_db"
+
 student_fieldnames = ["id_number", "first_name", "last_name", "gender", "year_level", "program_code"]
 program_fieldnames = ["program_code", "program_name", "college_code"]
 college_fieldnames = ["college_code", "college_name"]
 
-database_name = "ssis_db"
-
+#TODO: FIND OUT IF BELOW ARE STILL USEFUL
 header_names = {
     "STUDENTS": [
         ("id_number", "ID Number"),

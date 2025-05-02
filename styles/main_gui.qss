@@ -1,0 +1,199 @@
+QMainWindow{
+    background-color: #eeeeee;
+}
+
+QWidget{
+    font-family: "Arial";
+}
+
+QTableWidget{
+    background-color: white;
+    color: black;
+    gridline-color: transparent;
+}
+
+QTableWidget QHeaderView::section{
+    background-color: white;
+    color: black;
+    border: none;
+    border-bottom: 1px solid black;
+}
+
+QTableWidget::item{
+    background-color: white;
+    color: black;
+}
+
+QLabel{
+    color: black;
+    font-family: "MS Shell Dlg 2";
+}
+
+QPushButton{
+    background-color: white;
+    border-radius: 5px;
+}
+
+QComboBox{
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+}
+
+QComboBox::drop-down{
+    border: 1px solid black;
+    image: url("icons/drop_down_arrow_icon.svg");
+    height: 26px;
+    width: 20px;
+
+}
+
+QComboBox QAbstractItemView {
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+}
+
+QLineEdit{
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+
+#sb_ssis_label_2, #sb_ssis_label{
+    font-size: 11;
+    font-weight: bold;
+}
+
+#widget_17{
+    background-color: #a8e9a3;
+    border-radius: 15px;    
+}
+
+#widget_18{
+    background-color: #a8e9a3;
+    border-radius: 30px;
+}
+
+ #label, #sb_student_label, #sb_program_label, #sb_college_label{
+    font-size: 12;
+    font-weight: bold;
+    margin: 10;
+}
+
+
+#student_label, #program_label, #college_label{
+    font-size: 14;
+    font-weight: bold;
+}
+
+#exit_label{
+    color: #EA3323;
+    margin: 10;
+    font-size: 12;
+    font-weight: bold;
+}
+
+#sidebar_show_pushButton, #sidebar_hide_pushButton{
+    background-color: white;
+    image: url("icons/grey_hide_icon.svg");
+}
+#sidebar_show_pushButton::hover, #sidebar_hide_pushButton::hover{
+    background-color: #666666;
+    image: url("icons/white_hide_icon.svg");
+}
+
+#student_pushButton, #student_pushButton_2{
+    background-color: white;
+    image: url("icons/grey_student_icon.svg");
+}
+#student_pushButton::hover, #student_pushButton_2::hover{
+    background-color: #666666;
+    image: url("icons/white_student_icon.svg");
+}
+
+#program_pushButton, #program_pushButton_2{
+    background-color: white;
+    image: url("icons/grey_program_icon.svg")
+}
+#program_pushButton::hover, #program_pushButton_2::hover{
+    background-color: #666666;
+    image: url("icons/white_program_icon.svg")
+}
+
+#college_pushButton, #college_pushButton_2{
+    background-color: white;
+    image: url("icons/grey_college_icon.svg")
+}
+#college_pushButton::hover, #college_pushButton_2::hover{
+    background-color: #666666;
+    image: url("icons/white_college_icon.svg")
+}
+
+#exit_pushButton, #exit_pushButton_2{
+    background-color: #EA3323;
+    image: url("icons/white_exit_icon.svg");
+}
+
+#exit_pushButton::hover, #exit_pushButton_2::hover{
+    background-color: white;
+    border: 1px solid #EA3323;
+    image: url("icons/red_exit_icon.svg");
+}
+
+#add_student_button, #add_program_button, #add_college_button{
+    font-family: "MS Shell Dlg 2";
+    font-size: 12;
+    font-weight: bold;
+}
+
+#add_student_button, #add_program_button, #add_college_button{
+    background-color: #2fbb04;
+    border: 1px solid white;
+    color: white;
+}
+
+#add_student_button::hover, #add_program_button::hover, #add_college_button::hover{
+    background-color: white;
+    border: 1px solid #2fbb04;
+    color: #2fbb04;
+}
+
+#college_search_button, #program_search_button, #student_search_button{
+    border: 1px solid black;
+    background-color: white;
+    image: url("icons/grey_search_icon.svg");
+}
+
+#college_search_button::hover, #program_search_button::hover, #student_search_button::hover{
+    background-color: #666666;
+    image: url("icons/white_search_icon.svg");
+}
+
+QMessageBox {
+    background-color: #ffffff;
+    color: black;
+    font-family: "MS Shell Dlg 2";
+    font-size: 10pt;
+}
+
+QMessageBox QLabel {
+    color: black;
+}
+
+QMessageBox QPushButton {
+    background-color: #2fbb04;
+    color: white;
+    border: 1px solid white;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-weight: normal;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: white;
+    color: #2fbb04;
+    border: 1px solid #2fbb04;
+}

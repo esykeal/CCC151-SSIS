@@ -1,0 +1,46 @@
+QDialog{
+    background-color: #eeeeee;
+    
+}
+
+QLabel{
+    color: black;
+    font-family: "Arial";
+    font-weight: bold;
+}
+
+QLineEdit{
+    border-radius: 10px;
+}
+
+#line{
+    color: black;
+}
+
+#Save_button{
+    font-weight: bold;
+    background-color: #2fbb04;
+    color: white;
+    border: 1px solid white;
+}
+
+#Save_button::hover{
+    font-weight: bold;
+    background-color: white;
+    color: #2fbb04;
+    border: #2fbb04;
+}
+
+#Cancel_button{
+    font-weight: bold;
+    background-color:#E53935;
+    color: white;
+    border: 1px solid white;
+}
+
+#Cancel_button::hover{
+    font-weight: bold;
+    background-color: white;
+    color: #E53935;
+    border: 1px solid #E53935;
+}
