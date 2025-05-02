@@ -793,7 +793,7 @@ class MainWindow(QMainWindow):
         elif current_index == 0:
             table = self.ui.student_table
             table_name = "student"
-            headers = ["ID Number", "First Name", "Last Name", "Gender", "Year Level", "Program Code"]
+            headers = ["ID Number", "First Name", "Last Name", "Gender", "Year Level", "Program Code", "Actions"]
             index = self.ui.student_sort_by_comboBox.currentIndex()
             options = [
                 "id_number ASC, last_name ASC", "id_number DESC, last_name ASC",
