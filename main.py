@@ -586,23 +586,21 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def load_to_gui(self):
-        
         mydb = get_connection()
         mycursor = mydb.cursor()
 
         current_index = self.ui.stackedWidget.currentIndex()
         self.sort_by(current_index)
 
+        # Determine table and SQL based on view
         if current_index == 2:
             tableWidget = self.ui.college_table
             headers = ["College Code", "College Name", "Actions"]
             sql = "SELECT * FROM college"
-
         elif current_index == 1:
             tableWidget = self.ui.program_table
             headers = ["Program Code", "Program Name", "College Code", "Actions"]
             sql = "SELECT * FROM program"
-
         elif current_index == 0:
             tableWidget = self.ui.student_table
             headers = ["ID Number", "First Name", "Last Name", "Gender", "Year Level", "Program Code", "Actions"]
@@ -610,21 +608,28 @@ class MainWindow(QMainWindow):
         else:
             return
 
-        tableWidget.clearContents()
+        # Clear and reset table
+        tableWidget.clear()
         tableWidget.setRowCount(0)
-
-        mycursor.execute(sql)
-        result = mycursor.fetchall()
-
         tableWidget.setColumnCount(len(headers))
         tableWidget.setHorizontalHeaderLabels(headers)
+
+        # Fetch data
+        mycursor.execute(sql)
+        result = mycursor.fetchall()
         tableWidget.setRowCount(len(result))
 
+        # Index of the Actions column
+        actions_col = len(headers) - 1
+
         for row_index, row_data in enumerate(result):
-            for col_index, cell_data in enumerate(row_data):
+            # Fill in the data columns (excluding "Actions")
+            for col_index in range(actions_col):  # up to but not including 'Actions'
+                cell_data = row_data[col_index]
                 item = QTableWidgetItem(str(cell_data))
                 tableWidget.setItem(row_index, col_index, item)
 
+            # Create action buttons (Edit & Delete)
             action_widget = QWidget()
             layout = QHBoxLayout(action_widget)
             layout.setContentsMargins(0, 0, 0, 0)
@@ -641,7 +646,7 @@ class MainWindow(QMainWindow):
             layout.addWidget(delete_button)
 
             action_widget.setLayout(layout)
-            tableWidget.setCellWidget(row_index, len(headers) - 1, action_widget)
+            tableWidget.setCellWidget(row_index, actions_col, action_widget)
 
         mycursor.close()
         mydb.close()
@@ -898,7 +903,7 @@ class MainWindow(QMainWindow):
         elif current_index == 0:
             table = self.ui.student_table
             table_name = "student"
-            headers = ["ID Number", "First Name", "Last Name", "Gender", "Year Level", "Program Code"]
+            headers = ["ID Number", "First Name", "Last Name", "Gender", "Year Level", "Program Code", "Actions"]
             search_text = self.ui.student_search_input.text().strip().lower()
             search_filter = self.ui.student_filter_comboBox.currentText().strip().lower()
             filter_map = student_filter_map.get(search_filter, "id_number")
