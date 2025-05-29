@@ -254,7 +254,6 @@ class EditCollege_Dialog(QDialog):
         with open("styles/edit_college_dialog.qss", "r") as file:
             self.setStyleSheet(file.read())
 
-        self.parent.load_to_gui()
         
         self.ui.college_code_input.setText(row_data[0])
         self.ui.college_name_input.setText(row_data[1])
@@ -276,14 +275,14 @@ class EditCollege_Dialog(QDialog):
                 return
         
             if new_college_code == self.old_college_code:
-                pass
+               return
             else:
                 if college_code_checker(mycursor, new_college_code):
                     QMessageBox.warning(self, "Error", "College code already exists!")
                     return
                 
             if new_college_name == self.old_college_name:
-                pass
+                return
             else:
                 if college_name_checker(mycursor, new_college_name):
                     QMessageBox.warning(self, "Error", "College already exists!")
@@ -323,7 +322,6 @@ class EditProgram_Dialog(QDialog):
         with open("styles/edit_program_dialog.qss", "r") as file:
             self.setStyleSheet(file.read())
 
-        self.parent.load_to_gui()
         self.retrieve_college_codes()
 
         self.ui.program_code_input.setText(row_data[0])
@@ -373,21 +371,21 @@ class EditProgram_Dialog(QDialog):
                 return
             
             if new_program_code == self.old_program_code:
-                pass
+                return
             else:
                 if program_code_checker(mycursor, new_program_code):
                     QMessageBox.warning(self, "Error", "Program code already exists!")
                     return
                 
             if new_program_name == self.old_program_name:
-                pass
+                return
             else:
                 if program_name_checker(mycursor, new_program_name):
                     QMessageBox.warning(self, "Error", "Program name already exists!")
                     return
                 
             if new_college_code == self.old_college_code:
-                pass
+                return
 
             sql = "UPDATE program SET program_code = %s, program_name = %s, college_code = %s WHERE program_code = %s"
             mycursor.execute(sql, (new_program_code, new_program_name, new_college_code, self.old_program_code))
@@ -425,8 +423,6 @@ class EditStudent_Dialog(QDialog):
 
         with open("styles/edit_student_dialog.qss", "r") as file:
             self.setStyleSheet(file.read())
-
-        self.parent.load_to_gui()
 
         self.retrieve_program_code()
 
@@ -482,33 +478,33 @@ class EditStudent_Dialog(QDialog):
                 return
             
             if new_id_number == self.old_id_number:
-                pass
+                return
             else:
                 if id_number_checker(mycursor, new_id_number):
                     QMessageBox.warning(self, "Error", "ID number already exists!")
                     return
                 
             if new_first_name == self.old_first_name:
-                pass
+                return
 
             if new_last_name == self.old_last_name:
-                pass
+                return
 
             if new_gender == self.old_gender:
-                pass
+                return
 
             if new_year_level == self.old_year_level:
-                pass
+                return
 
             if new_program_code == self.old_program_code:
-                pass
+                return
 
             sql = """
                 UPDATE student
                 SET id_number = %s, first_name = %s, last_name = %s, gender = %s, year_level = %s, program_code = %s
                 WHERE id_number = %s   
                 """
-            mycursor.execute(sql, (new_id_number, new_first_name, new_last_name, new_gender, new_year_level, new_program_code))
+            mycursor.execute(sql, (new_id_number, new_first_name, new_last_name, new_gender, new_year_level, new_program_code, self.old_id_number))
             mydb.commit()
 
             QMessageBox.information(self, "Success", "Student updated successfully.")

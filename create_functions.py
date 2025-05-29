@@ -104,7 +104,11 @@ def create_student_table():
                 );
         """)
         print("Student table created successfully")
-        mycursor.close()
-        mydb.close()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+
+    finally:
+        if mycursor:
+            mycursor.close()
+        if mydb:
+            mydb.close()
