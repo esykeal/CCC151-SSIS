@@ -70,7 +70,10 @@ class AddCollege_Dialog(QDialog):
             print(f"{college_code} {college_name}")
 
             QMessageBox.information(self, "Success", "College added successfully.")
-            self.parent.load_to_gui()
+
+            current_index = self.parent.ui.stackedWidget.currentIndex()
+            self.parent.sort_by(current_index)
+
             self.accept()
 
         except mysql.connector.Error as err:
@@ -147,7 +150,10 @@ class AddProgram_Dialog(QDialog):
             mydb.commit()
 
             QMessageBox.information(self, "Success", "Program added successfully.")
-            self.parent.load_to_gui()
+
+            current_index = self.parent.ui.stackedWidget.currentIndex()
+            self.parent.sort_by(current_index)
+
             self.accept()
 
         except mysql.connector.Error as err:
@@ -226,7 +232,10 @@ class AddStudent_Dialog(QDialog):
             mydb.commit()
 
             QMessageBox.information(self, "Success", "Student added successfully.")
-            self.parent.load_to_gui()
+
+            current_index = self.parent.ui.stackedWidget.currentIndex()
+            self.parent.sort_by(current_index)
+
             self.accept()
 
         except mysql.connector.Error as err:
@@ -294,7 +303,10 @@ class EditCollege_Dialog(QDialog):
             mydb.commit()
 
             QMessageBox.information(self, "Success", "College updated successfully.")
-            self.parent.load_to_gui()
+
+            current_index = self.parent.ui.stackedWidget.currentIndex()
+            self.parent.sort_by(current_index)
+
             self.accept()
 
         except mysql.connector.Error as err:
@@ -393,7 +405,10 @@ class EditProgram_Dialog(QDialog):
             mydb.commit()
 
             QMessageBox.information(self, "Success", "Program updated successfully.")
-            self.parent.load_to_gui()
+
+            current_index = self.parent.ui.stackedWidget.currentIndex()
+            self.parent.sort_by(current_index)
+
             self.accept()
 
         except mysql.connector.Error as err:
@@ -509,7 +524,10 @@ class EditStudent_Dialog(QDialog):
             mydb.commit()
 
             QMessageBox.information(self, "Success", "Student updated successfully.")
-            self.parent.load_to_gui()
+            
+            current_index = self.parent.ui.stackedWidget.currentIndex()
+            self.parent.sort_by(current_index)
+
             self.accept()
 
         except mysql.connector.Error as err:
@@ -587,7 +605,7 @@ class MainWindow(QMainWindow):
         mycursor = mydb.cursor()
 
         current_index = self.ui.stackedWidget.currentIndex()
-        self.sort_by(current_index)
+        #self.sort_by(current_index)
 
         # Determine table and SQL based on view
         if current_index == 2:
