@@ -262,6 +262,7 @@ class EditCollege_Dialog(QDialog):
         self.ui.Cancel_button.clicked.connect(self.reject)
 
     def save_changes(self):
+        print("Save button clicked")
         new_college_code = self.ui.college_code_input.text()
         new_college_name = self.ui.college_name_input.text()
 
@@ -275,14 +276,14 @@ class EditCollege_Dialog(QDialog):
                 return
         
             if new_college_code == self.old_college_code:
-               return
+               pass
             else:
                 if college_code_checker(mycursor, new_college_code):
                     QMessageBox.warning(self, "Error", "College code already exists!")
                     return
                 
             if new_college_name == self.old_college_name:
-                return
+                pass
             else:
                 if college_name_checker(mycursor, new_college_name):
                     QMessageBox.warning(self, "Error", "College already exists!")
@@ -371,21 +372,21 @@ class EditProgram_Dialog(QDialog):
                 return
             
             if new_program_code == self.old_program_code:
-                return
+                pass
             else:
                 if program_code_checker(mycursor, new_program_code):
                     QMessageBox.warning(self, "Error", "Program code already exists!")
                     return
                 
             if new_program_name == self.old_program_name:
-                return
+                pass
             else:
                 if program_name_checker(mycursor, new_program_name):
                     QMessageBox.warning(self, "Error", "Program name already exists!")
                     return
                 
             if new_college_code == self.old_college_code:
-                return
+                pass
 
             sql = "UPDATE program SET program_code = %s, program_name = %s, college_code = %s WHERE program_code = %s"
             mycursor.execute(sql, (new_program_code, new_program_name, new_college_code, self.old_program_code))
@@ -478,26 +479,26 @@ class EditStudent_Dialog(QDialog):
                 return
             
             if new_id_number == self.old_id_number:
-                return
+                pass
             else:
                 if id_number_checker(mycursor, new_id_number):
                     QMessageBox.warning(self, "Error", "ID number already exists!")
                     return
                 
             if new_first_name == self.old_first_name:
-                return
+                pass
 
             if new_last_name == self.old_last_name:
-                return
+                pass
 
             if new_gender == self.old_gender:
-                return
+                pass
 
             if new_year_level == self.old_year_level:
-                return
+                pass
 
             if new_program_code == self.old_program_code:
-                return
+                pass
 
             sql = """
                 UPDATE student
